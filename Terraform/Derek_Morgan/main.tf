@@ -48,14 +48,14 @@ resource "aws_route_table_association" "mtc_public_assoc" {
 }
 
 resource "aws_security_group" "mtc_public_sg" {
-  name = "dev-sg"
+  name        = "dev-sg"
   description = "dev-security_group"
-  vpc_id = aws_vpc.mtc_vpc.id
+  vpc_id      = aws_vpc.mtc_vpc.id
 
   ingress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
   egress {
