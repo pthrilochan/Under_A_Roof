@@ -44,7 +44,7 @@ the `db-creds.yml` in this folder, and store the result in the `mysql-kms` folde
 ```
 ./encrypt.sh \
   alias/kms-cmk-example \
-  us-east-2 \
+  ap-south-1 \
   db-creds.yml \
   ../mysql-kms/db-creds.yml.encrypted
 ```

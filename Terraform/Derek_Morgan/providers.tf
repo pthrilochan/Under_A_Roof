@@ -9,5 +9,5 @@ terraform {
 provider "aws" {
   shared_config_files      = ["/home/thril/.aws/config"]
   shared_credentials_files = ["/home/thril/.aws/credentials"]
-  profile                  = "tfadmin"
+  #profile                  = "tfadmin"
 }

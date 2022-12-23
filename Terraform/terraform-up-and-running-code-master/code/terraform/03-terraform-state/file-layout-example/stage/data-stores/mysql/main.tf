@@ -15,7 +15,7 @@ terraform {
 
     # bucket         = "<YOUR S3 BUCKET>"
     # key            = "<SOME PATH>/terraform.tfstate"
-    # region         = "us-east-2"
+    # region         = "ap-south-1"
     # dynamodb_table = "<YOUR DYNAMODB TABLE>"
     # encrypt        = true
 
@@ -23,7 +23,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-2"
+  region = "ap-south-1"
 }
 
 resource "aws_db_instance" "example" {

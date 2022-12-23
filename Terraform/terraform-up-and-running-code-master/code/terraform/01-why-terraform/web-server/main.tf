@@ -10,12 +10,12 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-2"
+  region = "ap-south-1"
 }
 
 resource "aws_instance" "app" {
   instance_type     = "t2.micro"
-  availability_zone = "us-east-2a"
+  availability_zone = "ap-south-1a"
   ami               = "ami-0fb653ca2d3203ac1"
 
   user_data = <<-EOF

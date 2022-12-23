@@ -10,7 +10,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-2"
+  region = "ap-south-1"
 
   # Tags to apply to all AWS resources by default
   default_tags {

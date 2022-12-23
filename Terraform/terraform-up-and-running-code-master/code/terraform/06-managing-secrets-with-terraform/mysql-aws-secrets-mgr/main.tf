@@ -10,7 +10,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-2"
+  region = "ap-south-1"
 }
 
 data "aws_secretsmanager_secret_version" "creds" {

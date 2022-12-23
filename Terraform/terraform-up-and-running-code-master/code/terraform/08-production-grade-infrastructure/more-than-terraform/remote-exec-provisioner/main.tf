@@ -14,7 +14,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-2"
+  region = "ap-south-1"
 }
 
 # To make this example easy to try out, we generate a private key in Terraform.

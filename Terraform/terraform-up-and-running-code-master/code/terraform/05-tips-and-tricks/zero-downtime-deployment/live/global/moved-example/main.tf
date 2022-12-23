@@ -10,7 +10,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-2"
+  region = "ap-south-1"
 }
 
 # This was the old identifier for the security group. Below is the same security group, but with the new identifier.

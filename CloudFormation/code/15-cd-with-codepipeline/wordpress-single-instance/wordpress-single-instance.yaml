@@ -275,10 +275,10 @@ Mappings:
     sa-east-1:
       HVM64: ami-0a52e8a6018e92bb0
       HVMG2: NOT_SUPPORTED
-    us-east-1:
+    ap-south-1:
       HVM64: ami-032930428bf1abbff
       HVMG2: ami-0aeb704d503081ea6
-    us-east-2:
+    ap-south-1:
       HVM64: ami-027cab9a7bf0155df
       HVMG2: NOT_SUPPORTED
     us-west-1:
