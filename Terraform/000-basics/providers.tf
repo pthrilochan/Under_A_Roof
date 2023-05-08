@@ -2,12 +2,15 @@ terraform {
   required_providers {
     aws = {
       source = "hashicorp/aws"
+      version = "~> 4.16"
     }
   }
+  required_version = ">= 1.2.0"
 }
 
 provider "aws" {
   shared_config_files      = ["/home/thril/.aws/config"]
   shared_credentials_files = ["/home/thril/.aws/credentials"]
   #profile                  = "tfadmin"
+  #region = "ap-south-1"
 }
