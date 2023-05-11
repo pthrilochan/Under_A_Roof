@@ -1,7 +1,0 @@
-resource {
-
-}
-
-module {
-    
-}
