@@ -1,0 +1,18 @@
+pipeline {
+    agent any
+    options {
+        // Timeout counter starts AFTER agent is allocated
+        timeout(time: 1, unit: 'SECONDS')
+    }
+    stages {
+        stage('Hello') {
+            steps {
+                echo 'Hello World'
+                withCredentials([vaultString(credentialsId: 'vault-secret-text', variable: 'MYSECRET')]) {
+                // some block
+                sh '''
+                }
+            }
+        }
+    }
+}

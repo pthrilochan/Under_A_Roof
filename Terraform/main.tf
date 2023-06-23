@@ -1,26 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "4.66.1"
-    }
-    docker = {
-      source  = "kreuzwerker/docker"
-      version = "3.0.2"
-    }
-  }
-}
-
-provider "random" {
-  # Configuration options
-}
-
-provider "aws" {
-  # Configuration options
-}
-
-provider "docker" {}
-
 # Generate random string
 resource "random_string" "random" {
   count   = local.container_count
@@ -30,35 +7,29 @@ resource "random_string" "random" {
 }
 
 # download nodered image
-
-resource "docker_image" "nodered_image" {
-  name = var.image[terraform.workspace]
-
+module "image" {
+  source   = "./Dev/image"
+  image_in = var.image[terraform.workspace]
 }
+
+# # Creating docker volume
+# resource "null_resource" "docker_vol" {
+#   provisioner "local-exec" {
+#     command = "mkdir -p /home/thril/docker_vol/noderedvol/ && chown -R 1000:1000 /home/thril/docker_vol/noderedvol/"
+#   }
+# }
 
 # Create docker container 
-resource "docker_container" "nodered_container" {
-  image = docker_image.nodered_image.image_id
-  count = local.container_count
-  name  = join("-", ["nodered", terraform.workspace, random_string.random[count.index].result])
-
-  ports {
-    internal = var.internal_port
-    external = var.external_port[terraform.workspace][count.index]
-  }
-
-  volumes {
-    container_path = "/data"
-    host_path      = pathexpand("~/docker_vol/noderedvol/")
-  }
+module "container" {
+  source = "./Dev/container"
+  //depends_on = [null_resource.docker_vol]
+  image_in = module.image.image_out
+  /* Any attribute specified after the source attribute i.e. called vaiable.
+  so, image_in is a vaiable and becomes available to all child modules */
+  count             = local.container_count
+  name_in           = join("-", ["nodered", terraform.workspace, random_string.random[count.index].result])
+  internal_port_in  = var.internal_port
+  external_port_in  = var.external_port[terraform.workspace][count.index]
+  container_path_in = "/data"
+  host_path_in      = pathexpand("~/docker_vol/noderedvol/")
 }
-
-# Creating docker volume
-resource "null_resource" "docker_vol" {
-  provisioner "local-exec" {
-    command = "mkdir -p /home/thril/docker_vol/noderedvol/ && chown -R 1000:1000 /home/thril/docker_vol/noderedvol/"
-  }
-}
-
-
-
