@@ -6,11 +6,11 @@ services:
     privileged: true
     user: root
     ports:
-      - 8080:8080
-      - 50000:50000
+      - 8081:8080
+      - 50001:50000
     stdin_open: true
     tty: true
-    container_name: jenkins-blue
+    container_name: jenkins-lts
     volumes:
-      - /home/thril/jenkins-blueocean-vol/data:/var/jenkins_home
+      - /Allinone/docker_volumes_central/jenkins-lts-vol/data:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
