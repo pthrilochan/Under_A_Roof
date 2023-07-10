@@ -65,3 +65,7 @@ override.tf.json
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Public and Private keys
+*.key
+*.crt
