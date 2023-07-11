@@ -1,0 +1,25 @@
+# docker-compose.yaml
+version: '3.8'
+services:
+  jenkins:
+    image: myjenkins-blueocean:2.401.2-1
+    restart: unless-stopped
+    privileged: true
+    user: root
+    ports:
+      - 8081:8080
+      - 50001:50000
+    stdin_open: true
+    tty: true
+    container_name: jenkins-blueocean
+    volumes:
+      - /Allinone/docker_volumes_central/jenkins-docker-dind-vol/jenkins-data:/var/jenkins_home
+      - /Allinone/docker_volumes_central/jenkins-docker-dind-vol/jenkins-docker-certs:/certs/client:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - jenkins
+  dind:
+    image: docker:dind
+    restart: unless-stopped
+    
+  

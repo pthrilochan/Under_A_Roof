@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  jenkins:
+    image: myjenkins-blueocean:2.401.2-1
+    restart: unless-stopped
+    privileged: true
+    user: root
+    ports:
+      - 20100:8080
+      - 20501:50000
+    stdin_open: true
+    tty: true
+    container_name: jenkins-w-openssh-server
+    volumes:
+      - /Allinone/docker_volumes_central/jenkins-w-openssh-vol/jenkins-data:/var/jenkins_home
+      - /Allinone/docker_volumes_central/jenkins-w-openssh-vol/jenkins-docker-certs:/certs/client:ro
+    networks:
+      - net
+  remote_host:
+    container_name: remote-host
+    image: remote-host
+    build:
+      context: ubuntu
+    networks:
+      - net
+networks:
+  net:

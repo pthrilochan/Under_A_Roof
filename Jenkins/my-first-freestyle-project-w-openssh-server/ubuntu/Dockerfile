@@ -10,6 +10,6 @@ RUN ssh-keygen -A
 
 RUN service ssh start
 
-EXPOSE 22
+EXPOSE 2222
 
 CMD ["/usr/sbin/sshd","-D"]
