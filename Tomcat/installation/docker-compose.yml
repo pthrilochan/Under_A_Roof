@@ -1,0 +1,15 @@
+# docker-compose.yml for tomcat 9.0.78-jdk17
+version: '3'
+services:
+  tomcat:
+    image: tomcat:9.0.78-jdk17-extended
+    hostname: tomcat-server
+    restart: on-failure:3
+    privileged: true
+    #user: root
+    ports:
+      - 18080:18080
+      - 18444:18443
+    stdin_open: true
+    tty: true
+    container_name: tomcat-9.0.78-jdk17-extended

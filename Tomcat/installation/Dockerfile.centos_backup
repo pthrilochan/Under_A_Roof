@@ -1,0 +1,32 @@
+FROM centos:latest
+RUN cd /etc/yum.repos.d/
+RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+RUN sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+# RUN yum -y install java
+# RUN yum install java -y
+# RUN yum install java-devel -y
+RUN yum install java-17-openjdk -y
+RUN echo "$(java -version)"
+
+# Create users and groups
+RUN groupadd tomcat
+RUN mkdir /opt/tomcat
+RUN useradd -s /bin/nologin -g tomcat -d /opt/tomcat tomcat
+WORKDIR /opt/tomcat
+
+# Download and install tomcat
+ADD https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.78/bin/apache-tomcat-9.0.78.tar.gz /opt/tomcat
+RUN tar -xvfz apache*.tar.gz
+RUN mv apache-tomcat-9.0.78/* /opt/tomcat
+
+RUN chgrp -R tomcat /opt/tomcat/conf
+RUN chmod g+rwx /opt/tomcat/conf
+RUN chmod g+r /opt/tomcat/conf/*
+RUN chown -R tomcat /opt/tomcat/logs/ /opt/tomcat/temp/ /opt/tomcat/webapps/ /opt/tomcat/work/
+RUN chgrp -R tomcat /opt/tomcat/bin
+RUN chgrp -R tomcat /opt/tomcat/lib
+RUN chmod g+rwx /opt/tomcat/bin
+RUN chmod g+r /opt/tomcat/bin/*
+
+EXPOSE 8080
+CMD ["/opt/tomcat/bin/catalina.sh", "run"]
