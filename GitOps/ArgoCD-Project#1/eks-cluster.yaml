@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: EKS ArgoCD Cluster Stack
+
+Resources:
+  MyEKSCluster:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: my-eks-cluster
+      RoleArn: !GetAtt EKSServiceRole.Arn
+      ResourcesVpcConfig:
+        SecurityGroupIds:
+          - sg-0123456789abcdef0
+        SubnetIds:
+          - subnet-0123456789abcdef1
+          - subnet-0123456789abcdef2

@@ -1,0 +1,224 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  KeyPairName:
+    Type: String
+    Description: Name of the Key Pair to create
+    Default: MyKeyPair
+Resources:
+  MyKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: !Ref KeyPairName
+
+  EC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: EC2-SSM-FullAccess-Role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: EC2FullAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: ec2:*
+                Resource: '*'
+        - PolicyName: SSMFullAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: ssm:*
+                Resource: '*'
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: EC2-SSM-FullAccess-InstanceProfile
+      Roles:
+        - !Ref EC2InstanceRole
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet
+
+  MasterSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access
+      VpcId: !Ref VPC 
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
+
+  SlaveSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access
+      VpcId: !Ref VPC 
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
+        - CidrIp: 0.0.0.0/0
+          FromPort: 4000
+          ToPort: 4000
+          IpProtocol: tcp
+
+  MasterEBSVolume:
+    Type: AWS::EC2::Volume
+    Properties:
+      Size: 10 # Size of the EBS volume in GB
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+
+  SlaveEBSVolume:
+    Type: AWS::EC2::Volume
+    Properties:
+      Size: 10 # Size of the EBS volume in GB
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+
+  MasterEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      KeyName: !Ref MyKeyPair
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds:
+        - !GetAtt "MasterSecurityGroup.GroupId"
+      ImageId: ami-053b0d53c279acc90
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          # Update package index and install required packages
+          sudo apt update -y
+          sudo apt install -y python3-pip
+
+          # Install Ansible via pip3
+          sudo pip3 install ansible
+
+          # Install boto via pip3
+          sudo pip3 install boto3
+
+          # Download and install AWS CLI v2 using curl, unzip, and sudo
+          sudo apt install unzip
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+
+          # Create the /etc/ansible/ directory if it doesn't exist
+          sudo mkdir -p /etc/ansible
+          sudo mkdir -p /opt/ansible/inventory
+
+          # Create the /etc/ansible/ansible.cfg file with AWS dynamic inventory configuration
+          sudo cat > /etc/ansible/ansible.cfg << EOL
+          [inventory]
+          enable_plugins = aws_ec2
+          [defaults]
+          inventory      = /opt/ansible/inventory/aws_ec2.yaml
+          remote_user = ubuntu
+          private_key_file = /home/ubuntu/.ssh/ssh_key.pem
+          EOL
+
+          # Create the /opt/ansible/inventory/aws_ec2.yaml file with AWS dynamic inventory configuration
+          sudo cat > /opt/ansible/inventory/aws_ec2.yaml << EOL
+          ---
+          plugin: aws_ec2
+
+          regions:
+            - us-east-1
+
+          keyed_groups: 
+            - key: tags
+              prefix: tag
+          EOL
+
+  SlaveEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      KeyName: !Ref MyKeyPair
+      Tags:
+        - Key: Name
+          Value: Slavehost
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds:
+        - !GetAtt "SlaveSecurityGroup.GroupId"
+      ImageId: ami-053b0d53c279acc90
+      UserData: !Base64 |
+        #!/bin/bash
+        # Update package index and install required packages
+        sudo apt update -y
+
+        # Install git client on server
+        sudo apt-get install -y git
+
+  MasterEBSAttachment:
+    Type: AWS::EC2::VolumeAttachment
+    Properties:
+      Device: /dev/sdg
+      InstanceId: !Ref MasterEC2Instance
+      VolumeId: !Ref MasterEBSVolume
+  SlaveEBSAttachment:
+    Type: AWS::EC2::VolumeAttachment
+    Properties:
+      Device: /dev/sdg
+      InstanceId: !Ref SlaveEC2Instance
+      VolumeId: !Ref SlaveEBSVolume
+
+Outputs:
+  MasterPublicIp:
+    Description: Master EC2 Instance Public Ip
+    Value: !GetAtt MasterEC2Instance.PublicIp
+
+  SlavePublicIp:
+    Description: Slave EC2 Instance Public Ip
+    Value: !GetAtt SlaveEC2Instance.PublicIp
