@@ -7,7 +7,7 @@ variable "region" {
 variable "jenkins_master_instance_type" {
   type = string
   description = "Jenkins master EC2 instance type"
-  default = "t2.large"
+  default = "t3.medium"
 }
 
 variable "jenkins_worker_instance_type" {
